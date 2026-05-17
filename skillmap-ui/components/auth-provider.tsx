@@ -30,7 +30,7 @@ interface AuthContextType {
   signup: typeof signup
   logout: () => void
   updateProfile: (update: ProfileUpdate) => void
-  changePassword: typeof changePassword
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>
   deleteAccount: () => void
 }
 

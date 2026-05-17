@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { Compass, Library, Map, Plus } from "lucide-react"
+import { Compass, Globe2, Library, Map, Plus, Swords } from "lucide-react"
 
 import { useAuth } from "@/components/auth-provider"
 import { Button } from "@/components/ui/button"
@@ -69,6 +69,30 @@ export function AppSidebar() {
                 <Link href="/roadmaps">
                   <Library />
                   <span>My roadmaps</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                tooltip="Community"
+                isActive={pathname.startsWith("/community")}
+              >
+                <Link href="/community">
+                  <Globe2 />
+                  <span>Community</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                tooltip="Challenges"
+                isActive={pathname.startsWith("/challenges")}
+              >
+                <Link href="/challenges">
+                  <Swords />
+                  <span>Challenges</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

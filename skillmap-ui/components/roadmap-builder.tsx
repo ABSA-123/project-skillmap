@@ -19,7 +19,9 @@ import {
   Plus,
   Save,
   Sparkles,
+  Swords,
   Trash2,
+  UploadCloud,
 } from "lucide-react"
 
 import { useAuth } from "@/components/auth-provider"
@@ -47,9 +49,15 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { ApiClientFacade } from "@/lib/api-client"
-import { upsertRoadmap } from "@/lib/storage"
+import {
+  createChallengeRequest,
+  getOtherUsers,
+  publishRoadmapToCommunity,
+  upsertRoadmap,
+} from "@/lib/storage"
 import type {
   ChecklistItem,
+  PublicUser,
   ResourceItem,
   Roadmap,
   WeeklyTask,
@@ -96,10 +104,19 @@ export function RoadmapBuilder({ initial, mode }: RoadmapBuilderProps) {
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [challengeUsers, setChallengeUsers] = useState<PublicUser[]>([])
+  const [challengeUserId, setChallengeUserId] = useState("")
 
   useEffect(() => {
     setRoadmap(initial)
   }, [initial])
+
+  useEffect(() => {
+    if (!user) return
+    const users = getOtherUsers(user.id)
+    setChallengeUsers(users)
+    setChallengeUserId((current) => current || users[0]?.id || "")
+  }, [user])
 
   const progress = useMemo(() => {
     const items = [...roadmap.skills, ...roadmap.certifications, ...roadmap.weeklyTasks]
@@ -236,6 +253,19 @@ export function RoadmapBuilder({ initial, mode }: RoadmapBuilderProps) {
 
   // ----- save -----
 
+  const getValidationError = () => {
+    if (!roadmap.title.trim() || !roadmap.targetRole.trim()) {
+      return "Roadmap title and target role are required."
+    }
+    if (
+      roadmap.skills.length + roadmap.certifications.length + roadmap.weeklyTasks.length ===
+      0
+    ) {
+      return "Add at least one skill, certification, or weekly task before saving."
+    }
+    return null
+  }
+
   const saveRoadmap = async () => {
     setError(null)
     setMessage(null)
@@ -243,15 +273,9 @@ export function RoadmapBuilder({ initial, mode }: RoadmapBuilderProps) {
       setError("You must be signed in.")
       return
     }
-    if (!roadmap.title.trim() || !roadmap.targetRole.trim()) {
-      setError("Roadmap title and target role are required.")
-      return
-    }
-    if (
-      roadmap.skills.length + roadmap.certifications.length + roadmap.weeklyTasks.length ===
-      0
-    ) {
-      setError("Add at least one skill, certification, or weekly task before saving.")
+    const validationError = getValidationError()
+    if (validationError) {
+      setError(validationError)
       return
     }
 
@@ -274,6 +298,51 @@ export function RoadmapBuilder({ initial, mode }: RoadmapBuilderProps) {
 
     if (mode === "new") {
       router.replace(`/roadmaps/${stored.id}`)
+    }
+  }
+
+  const publishRoadmap = () => {
+    setError(null)
+    setMessage(null)
+    if (!user) {
+      setError("You must be signed in.")
+      return
+    }
+    const validationError = getValidationError()
+    if (validationError) {
+      setError(validationError.replace("saving", "publishing"))
+      return
+    }
+
+    const published = publishRoadmapToCommunity(user, roadmap)
+    setMessage(`${published.title} is now available in the community.`)
+  }
+
+  const sendChallenge = () => {
+    setError(null)
+    setMessage(null)
+    if (!user) {
+      setError("You must be signed in.")
+      return
+    }
+    if (!challengeUserId) {
+      setError("Create another user account before sending a challenge.")
+      return
+    }
+    const validationError = getValidationError()
+    if (validationError) {
+      setError(validationError.replace("saving", "challenging"))
+      return
+    }
+
+    try {
+      const saved = upsertRoadmap(user.id, roadmap)
+      const stored = saved.find((r) => r.id === roadmap.id) ?? roadmap
+      setRoadmap(stored)
+      const challenge = createChallengeRequest(user, challengeUserId, stored)
+      setMessage(`Challenge sent to ${challenge.recipientName}.`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not send the challenge.")
     }
   }
 
@@ -300,6 +369,10 @@ export function RoadmapBuilder({ initial, mode }: RoadmapBuilderProps) {
           <Badge variant="outline" className="hidden sm:inline-flex">
             {progress}% complete
           </Badge>
+          <Button onClick={publishRoadmap} variant="outline" size="sm">
+            <UploadCloud />
+            Publish
+          </Button>
           <Button onClick={saveRoadmap} disabled={saving} size="sm">
             <Save />
             {saving ? "Saving…" : "Save"}
@@ -623,6 +696,50 @@ export function RoadmapBuilder({ initial, mode }: RoadmapBuilderProps) {
                 >
                   Load template
                 </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Swords className="size-4 text-primary" />
+                  Challenge a friend
+                </CardTitle>
+                <CardDescription>
+                  Send this roadmap as a head-to-head progress challenge.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Select
+                  value={challengeUserId}
+                  onValueChange={setChallengeUserId}
+                  disabled={challengeUsers.length === 0}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a user" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {challengeUsers.map((challengeUser) => (
+                      <SelectItem key={challengeUser.id} value={challengeUser.id}>
+                        {challengeUser.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  className="w-full"
+                  variant="outline"
+                  onClick={sendChallenge}
+                  disabled={challengeUsers.length === 0}
+                >
+                  <Swords />
+                  Send challenge
+                </Button>
+                {challengeUsers.length === 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Add another account in this browser to challenge a friend.
+                  </p>
+                )}
               </CardContent>
             </Card>
           </aside>

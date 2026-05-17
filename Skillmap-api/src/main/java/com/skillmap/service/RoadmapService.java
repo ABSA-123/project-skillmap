@@ -3,6 +3,7 @@ package com.skillmap.service;
 import com.skillmap.entity.*;
 import com.skillmap.factory.RoadmapFactory;
 import com.skillmap.model.*;
+import com.skillmap.observer.RoadmapEventManager;
 import com.skillmap.repository.RoadmapRepository;
 import org.springframework.stereotype.Service;
 
@@ -12,9 +13,11 @@ import java.util.stream.Collectors;
 public class RoadmapService {
 
 	private final RoadmapRepository roadmapRepository;
+	private final RoadmapEventManager roadmapEventManager;
 
-	public RoadmapService(RoadmapRepository roadmapRepository) {
+	public RoadmapService(RoadmapRepository roadmapRepository, RoadmapEventManager roadmapEventManager) {
 		this.roadmapRepository = roadmapRepository;
+		this.roadmapEventManager = roadmapEventManager;
 	}
 
 	public RoadmapData generate(RoadmapRequest request) {
@@ -68,6 +71,7 @@ public class RoadmapService {
 		entity.setResources(roadmap.resources().stream().map(this::mapResource).collect(Collectors.toList()));
 
 		roadmapRepository.save(entity);
+		roadmapEventManager.publishCustomRoadmapCreated(roadmap);
 
 		return CustomRoadmapResponse.from(roadmap);
 	}
