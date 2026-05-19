@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:15
+    container_name: skillmap-db
+    environment:
+      POSTGRES_DB: skillmapdb
+      POSTGRES_USER: skillmap
+      POSTGRES_PASSWORD: skillmap123
+    ports:
+      - "5432:5432"
+    volumes:
+      - skillmap-data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: skillmap-api
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/skillmapdb
+      SPRING_DATASOURCE_USERNAME: skillmap
+      SPRING_DATASOURCE_PASSWORD: skillmap123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+    depends_on:
+      - db
+
+volumes:
+  skillmap-data:
