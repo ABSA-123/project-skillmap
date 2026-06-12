@@ -218,10 +218,8 @@ with `npm run dev`.
 
 ## Generative AI Usage Disclosure
 
-In line with the course policy, here's how we used generative AI
-tools while building SkillMap. Everything below falls under the
-"acceptable uses" list in the syllabus, and nothing in the project
-was generated for us by an AI tool.
+here's how we used generative AI
+tools while building SkillMap.
 
 - **Brainstorming** – Early on we bounced ideas off an AI assistant
   to figure out which features would actually be useful to a
@@ -240,8 +238,7 @@ was generated for us by an AI tool.
   roadmap validation in the service layer. We rewrote and tested
   every line it suggested before keeping it.
 - **Proofreading** – We used an AI tool to proofread this README and
-  the in-app help text for grammar and clarity. We didn't keep any
-  wording we didn't agree with.
+  the in-app help text for grammar and clarity.
 
 ### Team Members
 
