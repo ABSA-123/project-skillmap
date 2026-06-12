@@ -218,8 +218,10 @@ with `npm run dev`.
 
 ## Generative AI Usage Disclosure
 
-here's how we used generative AI
-tools while building SkillMap.
+In line with the course policy, here's how we used generative AI
+tools while building SkillMap. Everything below falls under the
+"acceptable uses" list in the syllabus, and nothing in the project
+was generated for us by an AI tool.
 
 - **Brainstorming** – Early on we bounced ideas off an AI assistant
   to figure out which features would actually be useful to a
