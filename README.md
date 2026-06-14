@@ -241,9 +241,3 @@ was generated for us by an AI tool.
   every line it suggested before keeping it.
 - **Proofreading** – We used an AI tool to proofread this README and
   the in-app help text for grammar and clarity.
-
-### Team Members
-
-- Abdullah Salah
-- Abdulrahman Abualenain
-- Abdulaziz Alsuwailem
